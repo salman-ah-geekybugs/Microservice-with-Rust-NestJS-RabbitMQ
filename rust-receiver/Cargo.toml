@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 amiquip = { version = "0.4.2", default-features = false }
+serde = "1.0.157"
+serde_json = "1.0.94"
