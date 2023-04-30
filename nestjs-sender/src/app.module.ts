@@ -13,7 +13,7 @@ import { ConsumerModule } from './consumer/consumer.module';
         name: 'RECEIVER_SERVICE',
         transport: Transport.RMQ,
         options: {
-          urls: ['amqp://localhost:5672'],
+          urls: ['amqp://rabbitmq:5672'],
           queue: 'receiver_queue',
           queueOptions: {
             durable: false,
@@ -21,7 +21,7 @@ import { ConsumerModule } from './consumer/consumer.module';
         },
       },
     ]),
-    ConsumerModule
+    ConsumerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

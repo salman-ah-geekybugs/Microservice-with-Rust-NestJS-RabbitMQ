@@ -13,8 +13,4 @@ export class ConsumerController {
     console.log("context ", context.getPattern());
     // channel.ack(orginalMessage);
   }
-
-  
-
-
 }

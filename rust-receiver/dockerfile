@@ -1,0 +1,37 @@
+# stage 1 - generate recipe file for dependencies
+FROM rust as planner
+WORKDIR /app
+RUN cargo install cargo-chef
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
+
+# stage 2 - build our dependencies
+FROM rust as cacher
+WORKDIR /app
+RUN cargo install cargo-chef
+
+COPY --from=planner /app/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+
+# stage 3 - use main rust image to build our application 
+FROM rust as builder
+
+# copy the app to docker image
+COPY . /app
+
+# set work directory to app
+WORKDIR /app
+
+# copy the dependencies
+COPY --from=cacher /app/target target
+COPY --from=cacher /usr/local/cargo /usr/local/cargo
+
+# build the image
+RUN cargo build --release 
+
+
+FROM gcr.io/distroless/cc-debian11
+COPY --from=builder /app/target/release/micro-demo /app/micro-demo
+WORKDIR /app
+
+CMD ["./micro-demo"]

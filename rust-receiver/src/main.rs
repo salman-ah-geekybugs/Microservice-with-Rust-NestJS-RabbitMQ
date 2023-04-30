@@ -19,10 +19,9 @@ struct ProcessCompleteDto {
 }
 
 fn receiver_queue() -> JoinHandle<()> {
-
-    thread::spawn( || {
-        let mut conn = Connection::insecure_open("amqp://guest:guest@localhost:5672")
-        .expect("Connection not established");
+    thread::spawn(|| {
+        let mut conn = Connection::insecure_open("amqp://guest:guest@rabbitmq:5672")
+            .expect("Connection not established");
         let channel = conn.open_channel(None).expect("Unable to connect");
         println!("Creating the queue");
         let queue = channel
@@ -80,8 +79,8 @@ fn receiver_queue() -> JoinHandle<()> {
 
 fn error_queue() -> JoinHandle<()> {
     thread::spawn(|| {
-        let mut conn = Connection::insecure_open("amqp://guest:guest@localhost:5672")
-        .expect("Connection not established");
+        let mut conn = Connection::insecure_open("amqp://guest:guest@rabbitmq:5672")
+            .expect("Connection not established");
         let channel = conn.open_channel(None).expect("Unable to connect");
         // println!("Creating the queue");
 
@@ -89,26 +88,26 @@ fn error_queue() -> JoinHandle<()> {
             .queue_declare("error_log", QueueDeclareOptions::default())
             .expect("Error queue could not be created");
 
-        let err_c = err_q.consume(ConsumerOptions::default()).expect("failed to create consumer");
+        let err_c = err_q
+            .consume(ConsumerOptions::default())
+            .expect("failed to create consumer");
         println!("[INFO] Listening on Error queue");
-        for (i,message) in err_c.receiver().iter().enumerate() {
+        for (i, message) in err_c.receiver().iter().enumerate() {
             match message {
-                ConsumerMessage::Delivery(delivery) =>{
+                ConsumerMessage::Delivery(delivery) => {
                     let body = String::from_utf8_lossy(&delivery.body);
                     println!("({:>3}) Received [{}]", i, body);
-                },
-                other =>{
+                }
+                other => {
                     println!("Consumer ended: {:?}", other);
                     break;
                 }
             }
-            
         }
     })
 }
 fn main() -> Result<()> {
     // let conn = Connection::insecure_open("amqp://guest:guest@localhost:5672")?;
-    
 
     println!("Starting receiver queue thread");
     let receiver_queue_handle = receiver_queue();

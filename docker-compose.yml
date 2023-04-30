@@ -5,3 +5,23 @@ services:
     ports:
       - 5672:5672
       - 15672:15672
+  api:
+    ports:
+      - 3000:3000
+    image: nest-sender:latest
+    depends_on:
+      - rabbitmq
+    
+    # build:
+    #   dockerfile: nestjs-sender/dockerfile
+    #   context: .
+    # # image: nest-sender:latest
+    # volumes:
+    #   - ./nestjs-sender:/usr/src/app
+
+  consumer:
+    # build: 
+    #   dockerfile: ./rust-receiver/dockerfile
+    image: rust-receiver:latest
+    depends_on:
+      - rabbitmq
