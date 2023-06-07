@@ -1,4 +1,4 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Controller, Get, HttpCode, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 
 @Controller()
@@ -13,7 +13,9 @@ export class AppController {
   }
 
   @Post()
+  @HttpCode(200)
   sendRustRequest() {
+    console.log('Processing request');
     return this.appService.sendProcessRequest();
   }
 }

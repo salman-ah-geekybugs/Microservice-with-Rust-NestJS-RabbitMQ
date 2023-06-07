@@ -1,2 +1,4 @@
 rust-receiver/target
 /node_modules
+*.xml
+*.iml

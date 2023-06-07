@@ -1,16 +1,26 @@
-import { Controller } from '@nestjs/common';
-import { Ctx, EventPattern, MessagePattern, Payload, RmqContext, Transport } from '@nestjs/microservices';
+import { Controller, Logger } from '@nestjs/common';
+import {
+  Ctx,
+  EventPattern,
+  MessagePattern,
+  Payload,
+  RmqContext,
+  Transport,
+} from '@nestjs/microservices';
 
 @Controller()
 export class ConsumerController {
-
-  constructor(){
-    console.log("Consumer controller initialized")
+  private logger = new Logger(ConsumerController.name);
+  constructor() {
+    console.log('Consumer controller initialized');
   }
   @MessagePattern('completed', Transport.RMQ)
-  public  async testfunc(@Payload() data: any, @Ctx() context: RmqContext){
-    console.log("Data from the queue",data);
-    console.log("context ", context.getPattern());
-    // channel.ack(orginalMessage);
+  public async testfunc(@Payload() data: any, @Ctx() context: RmqContext) {
+    try {
+      this.logger.log('Data from the queue', data);
+      this.logger.log('context ', context.getPattern());
+    } catch (error) {
+      this.logger.error(error);
+    }
   }
 }

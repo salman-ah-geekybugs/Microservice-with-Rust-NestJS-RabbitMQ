@@ -1,29 +1,43 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { RmqUrl } from '@nestjs/microservices/external/rmq-url.interface';
 import { ConsumerController } from './consumer.controller';
 
 @Module({
   imports: [
-    ClientsModule.register([
+    ClientsModule.registerAsync([
       {
         name: 'CONSUMER_SERVICE',
-        transport: Transport.RMQ,
-        options: {
-          urls: ['amqp://localhost:5672'],
-          queue: 'process_complete',
-          queueOptions: {
-            durable: true,
-          },
-          noAck: false,
-          prefetchCount:1
+        useFactory: (configService: ConfigService) => {
+          const queueName = configService.getOrThrow<string>('CONSUMER_QUEUE');
+          const url: RmqUrl = {
+            hostname: configService.getOrThrow<string>('RABBITMQ_HOST'),
+            port: configService.getOrThrow<number>('RABBITMQ_PORT'),
+          };
+          return {
+            transport: Transport.RMQ,
+            options: {
+              urls: [url],
+              queue: queueName,
+              queueOptions: {
+                durable: true,
+              },
+              noAck: false,
+              prefetchCount: 1,
+            },
+          };
         },
+        inject: [ConfigService],
+        imports: [ConfigModule],
       },
     ]),
   ],
-  // providers: [ConsumerService]
-  controllers: [ConsumerController]
+
+  controllers: [ConsumerController],
 })
-// @Module({
-//   controllers: [ConsumerController]
-// })
-export class ConsumerModule {}
+export class ConsumerModule implements OnModuleInit {
+  onModuleInit() {
+    console.log(`Process microservice ${process.pid}`);
+  }
+}

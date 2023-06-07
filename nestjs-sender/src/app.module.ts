@@ -1,24 +1,38 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { RmqUrl } from '@nestjs/microservices/external/rmq-url.interface';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConsumerController } from './consumer/consumer.controller';
 import { ConsumerModule } from './consumer/consumer.module';
-// import { ConsumerModule } from './consumer/consumer.module';
+
 
 @Module({
   imports: [
-    ClientsModule.register([
+    ConfigModule.forRoot(),
+    ClientsModule.registerAsync([
       {
         name: 'RECEIVER_SERVICE',
-        transport: Transport.RMQ,
-        options: {
-          urls: ['amqp://rabbitmq:5672'],
-          queue: 'receiver_queue',
-          queueOptions: {
-            durable: false,
-          },
+        useFactory: (configService: ConfigService) => {
+          // const queueUrl = configService.getOrThrow<string>('RABBITMQ_URL');
+          const url: RmqUrl = {
+            hostname: configService.getOrThrow<string>('RABBITMQ_HOST'),
+            port: configService.getOrThrow<number>('RABBITMQ_PORT'),
+          };
+          const queueName = configService.getOrThrow<string>('RECEIVER_QUEUE');
+          return {
+            transport: Transport.RMQ,
+            options: {
+              urls: [url],
+              queue: queueName,
+              queueOptions: {
+                durable: false,
+              },
+            },
+          };
         },
+        inject: [ConfigService],
+        imports: [ConfigModule],
       },
     ]),
     ConsumerModule,

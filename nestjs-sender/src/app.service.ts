@@ -25,12 +25,16 @@ export class AppService {
   }
 
   async sendProcessRequest() {
-    firstValueFrom(
-      this.receiverService.send(
-        { target: 'rust', cmd: 'hello' },
-        { test: 'this is some data that needs to be processed' },
-      ),
-    );
+    try {
+      firstValueFrom(
+        this.receiverService.send(
+          { target: 'rust', cmd: 'hello' },
+          { test: 'this is some data that needs to be processed' },
+        ),
+      );
+    } catch (error) {
+      console.error(error);
+    }
     return { result: 'Request is being processed' };
   }
 }
